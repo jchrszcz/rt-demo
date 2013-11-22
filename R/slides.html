@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Advanced analysis techniques</title>
+  <meta charset="utf-8">
+  <meta name="description" content="Advanced analysis techniques">
+  <meta name="author" content="Jeffrey Chrabaszcz, Michelle Dugas, &amp; DaSAL">
+  <meta name="generator" content="slidify" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta http-equiv="X-UA-Compatible" content="chrome=1">
+  <link rel="stylesheet" href="libraries/frameworks/io2012/css/default.css" media="all" >
+  <link rel="stylesheet" href="libraries/frameworks/io2012/phone.css" 
+    media="only screen and (max-device-width: 480px)" >
+  <link rel="stylesheet" href="libraries/frameworks/io2012/css/slidify.css" >
+  <link rel="stylesheet" href="libraries/highlighters/highlight.js/css/tomorrow.css" />
+  <base target="_blank"> <!-- This amazingness opens all links in a new tab. -->
+  <script data-main="libraries/frameworks/io2012/js/slides" 
+    src="libraries/frameworks/io2012/js/require-1.0.8.min.js">
+  </script>
+  
+    <link rel="stylesheet" href = "assets/css/ribbons.css">
+
+</head>
+<body style="opacity: 0">
+  <slides class="layout-widescreen">
+    
+    <!-- LOGO SLIDE -->
+    <!-- END LOGO SLIDE -->
+    
+
+    <!-- TITLE SLIDE -->
+    <!-- Should I move this to a Local Layout File? -->
+    <slide class="title-slide segue nobackground">
+      <hgroup class="auto-fadein">
+        <h1>Advanced analysis techniques</h1>
+        <h2>Using filters and GeMM for fun and profit</h2>
+        <p>Jeffrey Chrabaszcz, Michelle Dugas, &amp; DaSAL<br/></p>
+      </hgroup>
+          </slide>
+
+    <!-- SLIDES -->
+      <slide class="" id="slide-1" style="background:;">
+  <hgroup>
+    <h2>Outline</h2>
+  </hgroup>
+  <article>
+    <p>Here for script:</p>
+
+<p><a href="https://github.com/jchrszcz/rt-demo">https://github.com/jchrszcz/rt-demo</a></p>
+
+<ol>
+<li>Using smoothing splines</li>
+<li>Analysis with gemmR</li>
+<li>Questions</li>
+</ol>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+      <slide class="" id="slide-2" style="background:;">
+  <hgroup>
+    <h2>A look at our reaction times</h2>
+  </hgroup>
+  <article>
+    <p><img src="figure/unnamed-chunk-1.png" title="plot of chunk unnamed-chunk-1" alt="plot of chunk unnamed-chunk-1" style="display: block; margin: auto;" /></p>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+      <slide class="" id="slide-3" style="background:;">
+  <hgroup>
+    <h2>with some visual trimming</h2>
+  </hgroup>
+  <article>
+    <p><img src="figure/unnamed-chunk-2.png" title="plot of chunk unnamed-chunk-2" alt="plot of chunk unnamed-chunk-2" style="display: block; margin: auto;" /></p>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+      <slide class="" id="slide-4" style="background:;">
+  <hgroup>
+    <h2>applying the filter</h2>
+  </hgroup>
+  <article>
+    <p>We&#39;ll need two packages, (free and available on CRAN), and the actual filtering functions.</p>
+
+<pre><code class="r">library(assist)
+library(signal)
+source(&quot;vzfilter.R&quot;)
+</code></pre>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+      <slide class="" id="slide-5" style="background:;">
+  <hgroup>
+    <h2>applying the filter</h2>
+  </hgroup>
+  <article>
+    <pre><code>subjects &lt;- unique(df$Subj)
+df$new.vz.filter &lt;- df$log.rt
+
+for (i in 1:length(subjects)) {
+  temp &lt;- df$new.vz.filter[df$Subj == subjects[i] &amp; !is.na(df$new.vz.filter)]
+  temp &lt;- est.norm.smoothing.splines(temp)
+  df$new.vz.filter[df$Subj == subjects[i] &amp; !is.na(df$new.vz.filter)] &lt;- temp
+}
+</code></pre>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+      <slide class="" id="slide-6" style="background:;">
+  <hgroup>
+    <h2>visual effect of the filter</h2>
+  </hgroup>
+  <article>
+    <p><img src="figure/unnamed-chunk-4.png" title="plot of chunk unnamed-chunk-4" alt="plot of chunk unnamed-chunk-4" style="display: block; margin: auto;" /></p>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+      <slide class="" id="slide-7" style="background:;">
+  <hgroup>
+    <h2>comparing distributional properties</h2>
+  </hgroup>
+  <article>
+    <p><img src="figure/unnamed-chunk-5.png" title="plot of chunk unnamed-chunk-5" alt="plot of chunk unnamed-chunk-5" style="display: block; margin: auto;" /></p>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+      <slide class="" id="slide-8" style="background:;">
+  <hgroup>
+    <h2>repeated-measures ANOVA (raw)</h2>
+  </hgroup>
+  <article>
+    <pre><code>## Analysis of Variance Table
+## 
+## Response: RT
+##                         Df   Sum Sq  Mean Sq F value  Pr(&gt;F)    
+## Center                   1 26780181 26780181  239.63 &lt; 2e-16 ***
+## Difference               1   308258   308258    2.76   0.097 .  
+## Gain                     1  4634008  4634008   41.46 3.3e-10 ***
+## Subj                     1   132000   132000    1.18   0.278    
+## Center:Difference        1   224696   224696    2.01   0.157    
+## Center:Gain              1    62868    62868    0.56   0.454    
+## Difference:Gain          1   297524   297524    2.66   0.104    
+## Center:Difference:Gain   1    33652    33652    0.30   0.583    
+## Residuals              423 47273662   111758                    
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+</code></pre>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+      <slide class="" id="slide-9" style="background:;">
+  <hgroup>
+    <h2>repeated-measures ANOVA (filter)</h2>
+  </hgroup>
+  <article>
+    <pre><code>## Analysis of Variance Table
+## 
+## Response: new.vz.filter
+##                         Df Sum Sq Mean Sq F value Pr(&gt;F)    
+## Center                   1   5.71    5.71  355.91 &lt;2e-16 ***
+## Difference               1   0.03    0.03    1.64  0.201    
+## Gain                     1   2.43    2.43  151.17 &lt;2e-16 ***
+## Subj                     1   0.01    0.01    0.34  0.563    
+## Center:Difference        1   0.03    0.03    2.02  0.156    
+## Center:Gain              1   0.02    0.02    1.44  0.230    
+## Difference:Gain          1   0.00    0.00    0.01  0.904    
+## Center:Difference:Gain   1   0.08    0.08    5.29  0.022 *  
+## Residuals              423   6.79    0.02                   
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+</code></pre>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+      <slide class="" id="slide-10" style="background:;">
+  <hgroup>
+    <h2>general monotone model</h2>
+  </hgroup>
+  <article>
+    <p>In addition to the <code>Rcpp</code> and <code>gemmR</code> packages, we&#39;ll need a C++ compiler. This is free and downloadable, but varies by operating system.</p>
+
+<pre><code class="r">library(Rcpp)
+library(gemmR)
+</code></pre>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+      <slide class="" id="slide-11" style="background:;">
+  <hgroup>
+    <h2>gemmR output</h2>
+  </hgroup>
+  <article>
+    <pre><code>## Call:
+## gemm.formula(formula = RT ~ Center * Difference * Gain + Subj, 
+##     data = new.df, n.beta = 12000, parallel = TRUE, check.convergence = TRUE)
+## 
+## Coefficients:
+##      Center Difference  Gain Subj Center:Difference Center:Gain
+## [1,] 0.0014          0 -1.00    0                 0           0
+## [2,] 0.3084          0 -0.69    0                 0           0
+## [3,] 0.0877          0 -0.91    0                 0           0
+## [4,] 0.0412          0 -0.96    0                 0           0
+##      Difference:Gain Center:Difference:Gain
+## [1,]               0                      0
+## [2,]               0                      0
+## [3,]               0                      0
+## [4,]               0                      0
+## 
+## bic
+## [1] -381 -366 -366 -366
+</code></pre>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+    <slide class="backdrop"></slide>
+  </slides>
+
+  <!--[if IE]>
+    <script 
+      src="http://ajax.googleapis.com/ajax/libs/chrome-frame/1/CFInstall.min.js">  
+    </script>
+    <script>CFInstall.check({mode: 'overlay'});</script>
+  <![endif]-->
+</body>
+<!-- Grab CDN jQuery, fall back to local if offline -->
+<script src="http://ajax.aspnetcdn.com/ajax/jQuery/jquery-1.7.min.js"></script>
+<script>window.jQuery || document.write('<script src="libraries/widgets/quiz/js/jquery-1.7.min.js"><\/script>')</script>
+<!-- Load Javascripts for Widgets -->
+<!-- LOAD HIGHLIGHTER JS FILES -->
+<script src="libraries/highlighters/highlight.js/highlight.pack.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+<!-- DONE LOADING HIGHLIGHTER JS FILES -->
+</html>
